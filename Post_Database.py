@@ -20,11 +20,11 @@ class Post():
         </head>
         <body>
 
-        <a href='""" + self.link + """'><img src='""" + self.picture + """' width="300px" height="155px"><a/>
+        <a href='""" + self.link + """'><img src='""" + self.picture + """' width="300px" height="155px" alt="Image Poster"><a/>
 
-        <a href='""" + self.link + """' style="text-decoration: none;"><h1 style="color: orange; max-height: 67px!important; font: 20px/22px 'Contentia Bold', Tahoma, sans-serif; margin-top: 5px;">""" + self.title +"""</h1></a>
+        <a href='""" + self.link + """' style="text-decoration: none;"><h1 style="color: orange; max-height: 67px!important; font: 20px/22px 'Contentia Bold', Tahoma, sans-serif; margin-top: 5px; width: 300px;">""" + self.title +"""</h1></a>
 
-        <div style="font-size: 12px; margin-top: 5px;">
+        <div style="font-size: 12px; margin-top: 5px; width: 300px;">
             <span>
                 """ + self.writer + ' tarafından' + """
             </span>
@@ -34,7 +34,7 @@ class Post():
             </span>
         </div>
 
-        <p style="font: 14px/1.5 'Ubuntu', Arial, sans-serif; text-align: justify;">""" + self.post_info + """</p> 
+        <p style="font: 14px/1.5 'Ubuntu', Arial, sans-serif; text-align: justify; width: 300px; word-wrap:break-word;">""" + self.post_info + """</p> 
 
         </body>
         </html>
@@ -64,8 +64,10 @@ class Database_Post():
 
     def check_if_post_exists(self,link):
 
-        query = "select * from tbl_posts where link = @p1"
-        self.cursor.execute(query,(link,))
+        #query = "select * from tbl_posts where link = @p1"
+        #self.cursor.execute(query,(link,))
+        query = "select * from tbl_posts where link like '%" + link + "%'"
+        self.cursor.execute(query)
         posts = self.cursor.fetchall()
 
         if (len(posts) == 0):
