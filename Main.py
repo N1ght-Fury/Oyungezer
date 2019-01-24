@@ -202,10 +202,14 @@ while True:
                 print(user_mail,"successfully added to database.")
 
 
-            url = "http://oyungezer.com.tr/haber"
-            response = requests.get(url)
-            html_content = response.content
-            soup = BeautifulSoup(html_content, "html.parser")
+            try:
+                url = "http://oyungezer.com.tr/haber"
+                response = requests.get(url)
+                html_content = response.content
+                soup = BeautifulSoup(html_content, "html.parser")
+            except Exception as e:
+                print('An error occurred. Time: ' + str(datetime.strftime(datetime.now(),"%X")))
+                continue
 
             link_html = soup.find_all("a")
             image_html = soup.find_all("img")
@@ -226,7 +230,7 @@ while True:
                     ex_post_links.append("http://oyungezer.com.tr" + title)
 
             for i in image_html:
-                # Getting Image
+                # Getting Images
                 image = str(i['src'])
                 if (image.startswith("/images/haberler/")):
                     image_links.append("http://oyungezer.com.tr" + image)
@@ -236,7 +240,7 @@ while True:
                 if (j % 2 == 0):
                     post_links.append(i)
 
-            for link,picture in zip(post_links,image_links):
+            for link,picture,x in zip(post_links,image_links,range(0,3)):
                 url = link
                 response = requests.get(url)
                 html_content = response.content
@@ -267,7 +271,10 @@ while True:
                     item_text = item_text.replace("\n", "")
 
 
-                if (Post.check_if_post_exists(url)):
+                check_url = url.split("-")[0]
+                #print(check_url)
+
+                if (Post.check_if_post_exists(check_url)):
 
                     new_posts += 1
                     total_posts += 1
@@ -295,7 +302,7 @@ while True:
             if (new_posts == 0):
                 text = "No post released. Time: "
             else:
-                text = str(new_posts) + " new post released. Time: "
+                text = str(new_posts) + " post released. Time: "
             
             print(str(run_time) + ". run - " +  "Process finished. Waiting for 5 minutes. "
                   + text + str(datetime.strftime(datetime.now(),"%X")) + " - Today's number of posts: " + str(total_posts))
