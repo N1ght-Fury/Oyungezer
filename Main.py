@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import time
 from datetime import datetime
+import sys
 
 import Post_Database
 import User_Database
@@ -11,17 +12,15 @@ Post = Post_Database.Database_Post()
 Mail = User_Database.Database_User()
 
 
-print("""
-Enter '1' to organize user database.
-Enter '2' to start the program.
-Enter 'q' to exit program.
-""")
+#print("""
+#Enter '1' to organize user database.
+#Enter '2' to start the program.
+#Enter 'q' to exit program.
+#""")
 
 while True:
 
-    number = input("Command: ")
-
-    if (number == "1"):
+    if (sys.argv[1] == "1"):
 
         print("""
         Enter '1' to see all users.
@@ -154,6 +153,7 @@ while True:
             elif (command == "6"):
                 # Going Back to Main Menu
                 print("\nYou are on main menu right now.\n")
+                sys.send
                 break
 
             elif (command == "q"):
@@ -163,7 +163,7 @@ while True:
                 print("Invalid command. Try again.")
 
 
-    elif (number == "2"):
+    elif (sys.argv[1] == "2"):
 
         run_time = 0
         total_posts = 0
@@ -203,7 +203,7 @@ while True:
 
 
             try:
-                url = "http://oyungezer.com.tr/haber"
+                url = "https://oyungezer.com.tr/"
                 response = requests.get(url)
                 html_content = response.content
                 soup = BeautifulSoup(html_content, "html.parser")
@@ -211,87 +211,31 @@ while True:
                 print('An error occurred. Time: ' + str(datetime.strftime(datetime.now(),"%X")))
                 continue
 
-            link_html = soup.find_all("a")
-            image_html = soup.find_all("img")
+            cards = soup.find('div',{'class':'tab tab2 active'})
 
-            ex_post_links = list()
-            image_links = list()
-            post_links = list()
+            soup = BeautifulSoup(str(cards), "html.parser")
 
-            date = ""
-            title = ""
-            writer = ""
-            item_text = ""
+            img_id = soup.find('img', {'class':'w-100'})['src']
+            title = soup.find('h5', {'class':'card-title'}).text
+            writer = soup.find('h6', {'class':'card-author'}).text
+            info = soup.find('p', {'class':'card-text'}).text
+            link = soup.find('h5', {'class':'card-title'}).a['href']
+            
 
-            for i in link_html:
-                # Getting titles
-                title = str(i['href'])
-                if (title.startswith("/haber/")):
-                    ex_post_links.append("http://oyungezer.com.tr" + title)
+            if (Post.check_if_post_exists(img_id = img_id) and Post.check_if_post_exists(link = link)):
 
-            for i in image_html:
-                # Getting Images
-                image = str(i['src'])
-                if (image.startswith("/images/haberler/")):
-                    image_links.append("http://oyungezer.com.tr" + image)
+                new_posts += 1
+                total_posts += 1
 
-            for i, j in zip(ex_post_links, range(0, len(ex_post_links))):
-                # Getting post links
-                if (j % 2 == 0):
-                    post_links.append(i)
-
-            for link,picture,x in zip(post_links,image_links,range(0,3)):
-                url = link
-                response = requests.get(url)
-                html_content = response.content
-                soup = BeautifulSoup(html_content, "html.parser")
-
-                date_html = soup.find_all("dd", {"class": "published"})
-                title_html = soup.find_all("h2", {"itemprop": "headline"})
-                writer_html = soup.find_all("span", {"class": "autor_name"})
-                item_text_html = soup.find_all("div", {"class": "introtext"})
-
-                for i in date_html:
-                    date = str(i.text)
-                    date = date.replace("\n", "")
-                    date = date.replace("\t", "")
-
-                for i in title_html:
-                    title = str(i.text)
-                    title = title.replace("\n", "")
-                    title = title.replace("\t", "")
-
-                for i in writer_html:
-                    writer = str(i.text)
-                    writer = writer.replace("\n", "")
-                    writer = writer.replace("\t", "")
-
-                for i in item_text_html:
-                    item_text = str(i.text)
-                    item_text = item_text.replace("\n", "")
-
-
-                check_url = url.split("-")[0]
-                #print(check_url)
-
-                if (Post.check_if_post_exists(check_url)):
-
-                    new_posts += 1
-                    total_posts += 1
+                new_post = Post_Database.Post(img_id,title,writer,info,link)
+                Post.add_post(new_post)
                     
-                    #Adding post to database
-                    new_post = Post_Database.Post(title,writer,date,item_text,url,picture)
-                    Post.add_post(new_post)
+                mail_text = new_post.text_of_mail()
+                
+                addresses = Mail.get_mails()
 
-                    #Text of mail
-                    mail_text = new_post.text_of_mail()
-
-                    #Getting mail addresses
-                    address = Mail.get_mails()
-
-                    #Sending mail to users
-                    for mail in address:
-                        Inform_User.send_mail(mail[0],mail_text)
+                for mail in addresses:
+                    Inform_User.send_mail(mail[0],mail_text)
 
 
             run_time += 1
@@ -309,12 +253,9 @@ while True:
 
             run_time = int(run_time)
             
-            time.sleep(300)
+            time.sleep(180)
 
-
-    elif (number.lower() == "q"):
-        exit()
 
     else:
-        print("Invalid command. Try again.")
-
+        print('Invalid command.')
+        exit()
