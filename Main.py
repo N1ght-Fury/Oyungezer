@@ -209,6 +209,7 @@ while True:
                 soup = BeautifulSoup(html_content, "html.parser")
             except Exception as e:
                 print('An error occurred. Time: ' + str(datetime.strftime(datetime.now(),"%X")))
+                time.sleep(180)
                 continue
 
             cards = soup.find('div',{'class':'tab tab2 active'})
